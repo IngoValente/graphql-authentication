@@ -1,6 +1,13 @@
-import { client, clientWithAuth, startServer, FakeAdapter } from './setup';
+import * as jwt from 'jsonwebtoken';
+import {
+  SECRET,
+  client,
+  clientWithAuth,
+  startServer,
+  FakeAdapter
+} from './setup';
 
-test('signup - a new user', async () => {
+test('signup - a new user with token that doesn not expire', async () => {
   const req = client(await startServer());
 
   const result = await req.request(`mutation {
@@ -12,6 +19,39 @@ test('signup - a new user', async () => {
       }
     }
   }`);
+
+  const { exp, iat, userId } = jwt.verify(result.signup.token, SECRET);
+  expect(exp).toBeUndefined();
+
+  expect((result as any).signup).toEqual({
+    // Poorly check for a JWT token
+    token: expect.stringContaining('.'),
+    user: {
+      id: '3',
+      name: 'Roger'
+    }
+  });
+});
+
+test('signup - a new user with token that expires', async () => {
+  const req = client(
+    await startServer({ graphqlAuthentication: { tokenExpiration: '7d' } })
+  );
+
+  const result = await req.request(`mutation {
+    signup(data: {name: "Roger", email: "roger@volst.nl", password: "testtest2"}) {
+      token
+      user {
+        id
+        name
+      }
+    }
+  }`);
+
+  const { exp, iat, userId } = jwt.verify(result.signup.token, SECRET);
+  const beyondExpirationDate = Math.floor(Date.now() / 1000) + 3600 * 24 * 8;
+
+  expect(exp).toBeLessThan(beyondExpirationDate);
 
   expect((result as any).signup).toEqual({
     // Poorly check for a JWT token

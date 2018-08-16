@@ -1,7 +1,7 @@
 scalar DateTime
 
 type Query {
-  currentUser: User
+  currentUser: AuthPayload
 }
 
 type Mutation {
@@ -21,8 +21,8 @@ type Mutation {
 }
 
 type AuthPayload {
-  token: String!
-  user: User!
+  token: String
+  user: User
 }
 
 type UserIdPayload {

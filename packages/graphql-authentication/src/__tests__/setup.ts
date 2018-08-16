@@ -1,5 +1,6 @@
 import { GraphQLServer } from 'graphql-yoga';
 import { GraphQLClient } from 'graphql-request';
+import * as jwt from 'jsonwebtoken';
 import {
   graphqlAuthenticationConfig,
   authQueries,
@@ -8,6 +9,8 @@ import {
   User,
   ID
 } from '..';
+
+export const SECRET = 'wherearemyshoes';
 
 export class FakeAdapter implements GraphqlAuthenticationAdapter {
   users: User[] = [
@@ -82,9 +85,13 @@ export class FakeAdapter implements GraphqlAuthenticationAdapter {
   }
 }
 
-// In nodejs run `require('jsonwebtoken').sign({ userId: '2' }, 'wherearemyshoes')`
-const AUTH_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyIiwiaWF0IjoxNTI5MjUxNjQ4fQ.Tw4a0CI3r_8GmyuO1v2aMonrQtKV9QFYnXoxQz0cyRQ';
+const AUTH_KEY = jwt.sign({ userId: '2' }, SECRET);
+const iatDate = Math.floor(Date.now() / 1000) - 3600 * 24 * 8;
+const expDate = Math.floor(Date.now() / 1000) - 3600 * 24 * 1;
+const EXPIRED_AUTH_KEY = jwt.sign(
+  { iat: iatDate, exp: expDate, userId: '2' },
+  SECRET
+);
 
 let http: any;
 export async function startServer(options: any = {}) {
@@ -105,7 +112,7 @@ export async function startServer(options: any = {}) {
     context: req => ({
       ...req,
       graphqlAuthentication: graphqlAuthenticationConfig({
-        secret: 'wherearemyshoes',
+        secret: SECRET,
         adapter,
         ...options.graphqlAuthentication
       })
@@ -129,6 +136,13 @@ export const clientWithAuth = uri =>
   new GraphQLClient(uri, {
     headers: {
       Authorization: `Bearer ${AUTH_KEY}`
+    }
+  });
+
+export const clientWithExpiredAuth = uri =>
+  new GraphQLClient(uri, {
+    headers: {
+      Authorization: `Bearer ${EXPIRED_AUTH_KEY}`
     }
   });
 
