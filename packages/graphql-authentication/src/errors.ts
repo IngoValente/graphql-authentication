@@ -8,6 +8,10 @@ export const InvalidEmailError = createError('InvalidEmailError', {
   message: 'Given email is invalid.'
 });
 
+export const TokenExpiredError = createError('TokenExpiredError', {
+  message: 'Token expired.'
+});
+
 export const ResetTokenExpiredError = createError('ResetTokenExpiredError', {
   message: 'resetToken expired.'
 });

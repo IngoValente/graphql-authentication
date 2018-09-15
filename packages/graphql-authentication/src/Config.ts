@@ -15,6 +15,7 @@ export interface IGraphqlAuthenticationConfig {
   ) => Promise<any>;
   adapter: GraphqlAuthenticationAdapter;
   validatePassword?: (value: string) => boolean;
+  tokenExpiration?: string;
 }
 
 export function graphqlAuthenticationConfig(

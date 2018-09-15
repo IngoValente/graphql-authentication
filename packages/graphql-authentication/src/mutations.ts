@@ -2,8 +2,7 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import * as validator from 'validator';
 import { v4 as uuid } from 'uuid';
-import { getUser, Context } from './utils';
-import { User } from './Adapter';
+import { generateToken, getUser, Context } from './utils';
 import {
   MissingDataError,
   ResetTokenExpiredError,
@@ -24,10 +23,6 @@ import {
   InviteUserInput,
   UserUpdateInput
 } from './binding';
-
-function generateToken(user: User, ctx: Context) {
-  return jwt.sign({ userId: user.id }, ctx.graphqlAuthentication.secret);
-}
 
 function validatePassword(ctx: Context, value: string) {
   if (!ctx.graphqlAuthentication.validatePassword!(value)) {
